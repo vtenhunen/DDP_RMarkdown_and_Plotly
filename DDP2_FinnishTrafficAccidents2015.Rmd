@@ -1,0 +1,135 @@
+---
+title: "R Markdown and Plotly: Finnish Traffic Accidents 2015"
+author: "vtenhunen"
+date: "30 October 2016"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+# libraries
+library(plotly)
+library(dplyr)
+library(knitr)
+library(lubridate)
+library(ggplot2)
+
+# make sure that we have right locale here
+Sys.setlocale("LC_TIME","en_US.UTF-8")
+
+# Some knitr chunk options
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r getdata}
+# Let's have the Finnish road accident data
+DataURL="https://www.avoindata.fi/dataset/35f439f6-4512-444f-afd1-444356cb9524/resource/df40544f-7967-4224-8f02-6e0543f2e623/download/Tieliikenneonnettomuudet2015.zip"
+DataFile="./RoadTrafficAccidentsIn2015.zip"
+      
+      if(!file.exists(DataFile)){
+            # Get the data for the assignment
+            download.file(DataURL, DataFile)
+      }
+
+# It is a zip packet, so we unzip it
+      unzip(DataFile)
+```
+
+```{r readdata}
+
+# Next we read the data to the data frame 
+alldata = read.csv("./Tieliikenneonnettomuudet_2015/tieliikenneonnettomuudet_2015_onnettomuus.csv", na.strings="NA", sep = ";", header = TRUE, fileEncoding = "latin1")
+
+# let's take only some columns:
+# Onnett_id, X, Y, Kuolleet, Loukkaantuneet, 
+accdata <- select(alldata, Onnett_id, Vuosi, Kk, Päivä, Tunti, Vakavuusko, X, Y, Kuolleet, Loukkaant)
+
+# Remove NA-information
+accdata <- accdata[complete.cases(accdata),]
+
+# Now we convert the day format to the standard format 
+accdata$Päivä <- as.Date(parse_date_time(accdata$Päivä,"dmy"))
+
+### Plot 3
+## Here we calculate accident frequenses, deads and injured by hour
+accbyhour <- accdata %>%
+  group_by(Tunti) %>%
+  summarise(freq = n(), dead = sum(Kuolleet), injured = sum(Loukkaant)) 
+# clean -1 hour away, don't know what it is
+accbyhour<-accbyhour[!(accbyhour$Tunti=="-1"),]
+
+### Plot 2
+## Here we calculate accident frequenses, deads and injured by day
+accbyday <- accdata %>%
+  group_by(Päivä) %>%
+  summarise(freq = n(), dead = sum(Kuolleet), injured = sum(Loukkaant)) 
+# Rename columns
+colnames(accbyday)[1] <- "Day"
+colnames(accbyday)[2] <- "Accidents"
+
+### Plot 1
+## Here we calculate accident frequenses, deads and injured by month
+accbymonth <- accdata %>%
+  group_by(Kk) %>%
+  summarise(freq = n(), dead = sum(Kuolleet), injured = sum(Loukkaant)) 
+
+```
+
+
+## Presentation
+
+This presentation include following graphs about Finnish traffic accident in 2015:
+
+- Traffic accidents, deads and injured by month
+- Traffic accidents by day of the year
+- Traffic accidents, deads and injured by hour of the day
+- About the data
+
+All plots has been created with the plotly. Source code is availbale in GitHub: http://
+
+## Accidents, dead and injured by month
+
+```{r accbymonthlayered, echo=FALSE, eval=TRUE}
+
+#First create the plotly and after that add traces and make some texts
+plot_ly(accbymonth, x = ~Kk, y = accbymonth$freq, name = 'Accidents', type = 'scatter', text = paste("Month: ", accbymonth$Kk, "/2015", "<br>Accidents: ", accbymonth$freq), mode = 'lines+markers') %>%
+      add_trace(y = ~injured, name = 'Injured', text = paste("Month: ", accbymonth$Kk,"/2015", "<br>Injured: ", accbymonth$injured), mode = 'lines+markers') %>%
+      add_trace(y = ~dead, name = 'Dead', text = paste("Month: ", accbymonth$Kk, "/2015", "<br>Dead: ", accbymonth$dead), mode = 'lines+markers')
+
+```
+
+## Accidents by day
+```{r accidentfreq, echo = FALSE, eval=TRUE}
+
+# Let's use here ggplotly
+p <- ggplot(accbyday, aes(x=Day, y=Accidents)) +
+    geom_point(shape=1, color="blue") + 
+    geom_smooth(method=lm) + 
+      labs(x="Day", y="")
+# print the result
+ggplotly(p)
+
+```
+
+
+## Accidents, deads and injured by hour of the day
+```{r accidentsbyday, echo = FALSE, eval=TRUE}
+
+accbyhour$Tunti <- factor(accbyhour$Tunti, levels = accbyhour[["Tunti"]])
+
+p <- plot_ly(accbyhour, x = ~Tunti, y = ~freq, type = 'bar', name = 'Accidents by hour of the day', marker = list(color = 'rgb(49,130,189)')) %>%
+        add_trace(y = ~accbyhour$injured, name = 'Injured by hour', marker = list(color = 'rgb(139,49,204)')) %>%
+  add_trace(y = ~accbyhour$dead, name = 'Dead by hour', marker = list(color = 'rgb(255,0,0)')) %>%
+  layout(xaxis = list(title = "Hour", tickangle = -45),
+         yaxis = list(title = ""),
+         margin = list(b = 100),
+         barmode = 'group')
+p
+```
+
+## About the data
+
+- Finnish Transport Agency collects annual road trafic accident data
+- It is based on information received from the law enforcement officials and Statistics Finland
+- Source: http://tinyurl.com/zk2fshn
+- Licence: CC 4.0 BY (https://creativecommons.org/licenses/by/4.0/)
+
