@@ -79,26 +79,26 @@ accbymonth <- accdata %>%
 
 This presentation include following graphs about Finnish traffic accident in 2015:
 
-- Traffic accidents, deads and injured by month
-- Traffic accidents by day of the year
-- Traffic accidents, deads and injured by hour of the day
+- Traffic accidents, deaths and injuries by month
+- Traffic accidents per day of the year
+- Traffic accidents, deaths and injuries per hour of the day
 - About the data
 
 All plots has been created with the plotly. 
 Source code is availbale in GitHub: https://github.com/vtenhunen/DDP_RMarkdown_and_Plotly
 
-## Accidents, dead and injured by month
+## Accidents, deaths and injuries per month
 
 ```{r accbymonthlayered, echo=FALSE, eval=TRUE}
 
 #First create the plotly and after that add traces and make some texts
 plot_ly(accbymonth, x = ~Kk, y = accbymonth$freq, name = 'Accidents', type = 'scatter', text = paste("Month: ", accbymonth$Kk, "/2015", "<br>Accidents: ", accbymonth$freq), mode = 'lines+markers') %>%
-      add_trace(y = ~injured, name = 'Injured', text = paste("Month: ", accbymonth$Kk,"/2015", "<br>Injured: ", accbymonth$injured), mode = 'lines+markers') %>%
-      add_trace(y = ~dead, name = 'Dead', text = paste("Month: ", accbymonth$Kk, "/2015", "<br>Dead: ", accbymonth$dead), mode = 'lines+markers')
+      add_trace(y = ~injured, name = 'Injuries', text = paste("Month: ", accbymonth$Kk,"/2015", "<br>Injuries: ", accbymonth$injured), mode = 'lines+markers') %>%
+      add_trace(y = ~dead, name = 'Deaths', text = paste("Month: ", accbymonth$Kk, "/2015", "<br>Deaths: ", accbymonth$dead), mode = 'lines+markers')
 
 ```
 
-## Accidents by day
+## Accidents per day
 ```{r accidentfreq, echo = FALSE, eval=TRUE}
 
 # Let's use here ggplotly
@@ -112,14 +112,14 @@ ggplotly(p)
 ```
 
 
-## Accidents, deads and injured by hour of the day
+## Accidents, deaths and injuries per hour of the day
 ```{r accidentsbyday, echo = FALSE, eval=TRUE}
 
 accbyhour$Tunti <- factor(accbyhour$Tunti, levels = accbyhour[["Tunti"]])
 
-p <- plot_ly(accbyhour, x = ~Tunti, y = ~freq, type = 'bar', name = 'Accidents by hour of the day', marker = list(color = 'rgb(49,130,189)')) %>%
-        add_trace(y = ~accbyhour$injured, name = 'Injured by hour', marker = list(color = 'rgb(139,49,204)')) %>%
-  add_trace(y = ~accbyhour$dead, name = 'Dead by hour', marker = list(color = 'rgb(255,0,0)')) %>%
+p <- plot_ly(accbyhour, x = ~Tunti, y = ~freq, type = 'bar', name = 'Accidents per hour of the day', marker = list(color = 'rgb(49,130,189)')) %>%
+        add_trace(y = ~accbyhour$injured, name = 'Injuries per hour', marker = list(color = 'rgb(139,49,204)')) %>%
+  add_trace(y = ~accbyhour$dead, name = 'Deaths per hour', marker = list(color = 'rgb(255,0,0)')) %>%
   layout(xaxis = list(title = "Hour", tickangle = -45),
          yaxis = list(title = ""),
          margin = list(b = 100),
