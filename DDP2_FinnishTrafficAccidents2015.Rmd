@@ -84,7 +84,8 @@ This presentation include following graphs about Finnish traffic accident in 201
 - Traffic accidents, deads and injured by hour of the day
 - About the data
 
-All plots has been created with the plotly. Source code is availbale in GitHub: http://
+All plots has been created with the plotly. 
+Source code is availbale in GitHub: https://github.com/vtenhunen/DDP_RMarkdown_and_Plotly
 
 ## Accidents, dead and injured by month
 
